@@ -1,0 +1,6 @@
+---
+.module-validate:
+  image: hashicorp/terraform:latest
+  stage: validate
+  script:
+    - terraform validate
