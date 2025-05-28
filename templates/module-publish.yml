@@ -14,7 +14,7 @@
     - echo "The module version is set to ${TERRAFORM_MODULE_VERSION}"
     - TERRAFORM_MODULE_NAME=$(echo "${TERRAFORM_MODULE_NAME}" | tr " _" -)  # module-name must not have spaces or underscores, so translate them to hyphens
     - TAR_FILENAME="/tmp/${TERRAFORM_MODULE_NAME}-${TERRAFORM_MODULE_SYSTEM}-${TERRAFORM_MODULE_VERSION}.tgz"
-    - UPLOAD_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/terraform/modules/olivias/${TERRAFORM_MODULE_SYSTEM}/${TERRAFORM_MODULE_VERSION}/file"
+    - UPLOAD_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/terraform/modules/${TERRAFORM_MODULE_NAME}/${TERRAFORM_MODULE_SYSTEM}/${TERRAFORM_MODULE_VERSION}/file"
     # Create and populate exclude_list.txt
     - |
       touch exclude_list.txt
