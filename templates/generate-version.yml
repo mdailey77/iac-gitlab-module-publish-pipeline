@@ -1,0 +1,35 @@
+---
+.generate-version:
+  stage: version
+  image: ubuntu:25.10
+  script:
+    - |
+      if [[ -n "$CI_COMMIT_TAG" && "$CI_COMMIT_TAG" =~ ^v ]]; then
+        echo "The module version number must not start with a 'v'. It should follow semantic versioning, ie xx.xx.xx with only numbers and digits."
+        exit 1
+      fi
+    - |
+      if [[ -n "$CI_COMMIT_TAG" && "$CI_COMMIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]$ ]]; then
+        echo "A Git tag with semantic versioning is detected and will be used as the module version."
+        echo "TERRAFORM_MODULE_VERSION=${CI_COMMIT_TAG}" >> ${CI_PROJECT_DIR}/version.env
+        echo "The module version will be ${CI_COMMIT_TAG}"
+      else
+        echo "The module version number will be generated using the semantic versioning tool git-cliff."
+        git config --global --add safe.directory '*'
+        curl -Lsf "${GITCLIFF_GITHUB}" \
+        | tar -xz --strip-components=1 "git-cliff-${GITCLIFF_VERSION}/git-cliff" \
+        && ./git-cliff --version
+        TERRAFORM_MODULE_VERSION=$(./git-cliff --bumped-version --repository .)
+        echo "TERRAFORM_MODULE_VERSION=${TERRAFORM_MODULE_VERSION}" >> ${CI_PROJECT_DIR}/version.env
+        echo "The module version will be ${TERRAFORM_MODULE_VERSION}"
+        echo "Adding Git tag ${TERRAFORM_MODULE_VERSION}"
+        curl --request POST \
+          --header "PRIVATE-TOKEN: ${ARCTURUSPAT}" \
+          --url "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags" \
+          --form "tag_name=${TERRAFORM_MODULE_VERSION}" --form "ref=${CI_COMMIT_BRANCH}"
+      fi
+    - cat ${CI_PROJECT_DIR}/version.env
+  artifacts:
+    reports:
+      dotenv:
+        - version.env
